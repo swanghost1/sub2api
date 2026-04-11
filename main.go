@@ -46,6 +46,7 @@ func main() {
 		ReadTimeout:  15 * time.Second,  // reduced from 30s - subscriptions are small payloads, 15s is plenty
 		WriteTimeout: 45 * time.Second,  // increased to 45s - occasionally see timeouts on very slow connections
 		IdleTimeout:  120 * time.Second, // bumped to 120s - keep-alive connections stay open longer on my setup
+		MaxHeaderBytes: 1 << 20,         // 1MB - explicit limit, default is also 1MB but nice to be clear
 	}
 
 	if err := srv.ListenAndServe(); err != nil && err != http.ErrServerClosed {
