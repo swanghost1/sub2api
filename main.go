@@ -16,9 +16,7 @@ const (
 	defaultPort    = 8080
 	defaultHost    = "127.0.0.1" // changed from 0.0.0.0 - bind to localhost only by default for personal use
 	appName        = "sub2api"
-	appVersion     = "dev"
-)
-
+	appVersion     n
 func main() {
 	// Command-line flags
 	port := flag.Int("port", getEnvInt("PORT", defaultPort), "Port to listen on")
@@ -45,7 +43,7 @@ func main() {
 		Handler:      h,
 		ReadTimeout:  15 * time.Second,  // reduced from 30s - subscriptions are small payloads, 15s is plenty
 		WriteTimeout: 45 * time.Second,  // increased to 45s - occasionally see timeouts on very slow connections
-		IdleTimeout:  60 * time.Second,  // 60s is a more standard idle timeout
+		IdleTimeout:  120 * time.Second, // bumped to 120s - keep-alive connections stay open longer on my setup
 	}
 
 	if err := srv.ListenAndServe(); err != nil && err != http.ErrServerClosed {
