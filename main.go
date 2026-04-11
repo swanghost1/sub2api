@@ -16,7 +16,9 @@ const (
 	defaultPort    = 8080
 	defaultHost    = "127.0.0.1" // changed from 0.0.0.0 - bind to localhost only by default for personal use
 	appName        = "sub2api"
-	appVersion     n
+	appVersion     = "0.1.0"
+)
+
 func main() {
 	// Command-line flags
 	port := flag.Int("port", getEnvInt("PORT", defaultPort), "Port to listen on")
