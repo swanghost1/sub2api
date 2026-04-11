@@ -43,9 +43,9 @@ func main() {
 	srv := &http.Server{
 		Addr:         addr,
 		Handler:      h,
-		ReadTimeout:  30 * time.Second, // added timeouts to avoid hanging connections
-		WriteTimeout: 30 * time.Second,
-		IdleTimeout:  60 * time.Second,
+		ReadTimeout:  15 * time.Second, // reduced from 30s - subscriptions are small payloads, 15s is plenty
+		WriteTimeout: 15 * time.Second,
+		IdleTimeout:  90 * time.Second, // increased idle timeout to keep connections alive longer
 	}
 
 	if err := srv.ListenAndServe(); err != nil && err != http.ErrServerClosed {
