@@ -16,7 +16,7 @@ const (
 	defaultPort    = 8080
 	defaultHost    = "127.0.0.1" // changed from 0.0.0.0 - bind to localhost only by default for personal use
 	appName        = "sub2api"
-	appVersion     "
+	appVersion     = "0.0"
 )
 
 func main() {
