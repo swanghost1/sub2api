@@ -41,7 +41,8 @@ func (h *SubscriptionHandler) Convert(c *gin.Context) {
 		return
 	}
 
-	target := strings.ToLower(c.DefaultQuery("target", "clash"))
+	// Default target changed to "sing-box" since that's what I primarily use
+	target := strings.ToLower(c.DefaultQuery("target", "sing-box"))
 
 	// Build upstream request
 	req, err := http.NewRequestWithContext(c.Request.Context(), http.MethodGet, rawURL, nil)
@@ -99,17 +100,12 @@ func subscriptionUserAgent(target string) string {
 		return "Surge/2023"
 	case "quantumult", "quantumultx":
 		return "Quantumult/1.0"
+	case "sing-box":
+		return "sing-box/1.8.0"
 	default:
 		return "sub2api/1.0 (+https://github.com/sub2api/sub2api)"
 	}
 }
 
 // resolveContentType maps a target format name to its MIME type.
-func resolveContentType(target string) string {
-	switch target {
-	case "clash", "clashr", "surge", "quantumult", "quantumultx", "singbox":
-		return "text/yaml; charset=utf-8"
-	default:
-		return "text/plain; charset=utf-8"
-	}
-}
+func resolveContentT
