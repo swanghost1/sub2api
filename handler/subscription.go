@@ -69,7 +69,8 @@ func (h *SubscriptionHandler) Convert(c *gin.Context) {
 		return
 	}
 
-	body, err := io.ReadAll(io.LimitReader(resp.Body, 10<<20)) // 10 MB limit
+	// Increased limit to 20 MB — some of my subscriptions with many nodes were getting truncated
+	body, err := io.ReadAll(io.LimitReader(resp.Body, 20<<20))
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": fmt.Sprintf("failed to read response body: %v", err)})
 		return
@@ -103,9 +104,6 @@ func subscriptionUserAgent(target string) string {
 	case "sing-box":
 		return "sing-box/1.8.0"
 	default:
-		return "sub2api/1.0 (+https://github.com/sub2api/sub2api)"
+		return "sub2api/1.0 (+https://github.com/Wei-Shaw/sub2api)"
 	}
 }
-
-// resolveContentType maps a target format name to its MIME type.
-func resolveContentT
