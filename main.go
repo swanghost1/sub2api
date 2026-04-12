@@ -63,11 +63,14 @@ func getEnv(key, defaultVal string) string {
 }
 
 // getEnvInt returns the integer value of an environment variable or a default value.
+// Note: if the env var is set but not a valid integer, we silently fall back to the
+// default rather than erroring out - convenient for my local dev workflow.
 func getEnvInt(key string, defaultVal int) int {
 	if val, ok := os.LookupEnv(key); ok {
 		if i, err := strconv.Atoi(val); err == nil {
 			return i
 		}
+		log.Printf("Warning: env var %s=%q is not a valid integer, using default %d", key, val, defaultVal)
 	}
 	return defaultVal
 }
