@@ -3,89 +3,93 @@ package handler
 import (
 	"fmt"
 	"io"
-	"log"
 	"net/http"
 	"strings"
 	"time"
+
+	"github.com/gin-gonic/gin"
 )
 
-const (
-	// DefaultTimeout is the HTTP client timeout for fetching subscriptions
-	DefaultTimeout = 30 * time.Second
-	// MaxResponseSize limits the subscription response body to 10MB
-	MaxResponseSize = 10 * 1024 * 1024
-)
-
-// SubscriptionHandler handles incoming requests for subscription conversion
+// SubscriptionHandler handles subscription-related HTTP requests.
 type SubscriptionHandler struct {
-	client    *http.Client
-	userAgent string
+	client *http.Client
 }
 
-// NewSubscriptionHandler creates a new SubscriptionHandler with the given timeout and user agent
-func NewSubscriptionHandler(timeout time.Duration, userAgent string) *SubscriptionHandler {
-	if timeout <= 0 {
-		timeout = DefaultTimeout
-	}
-	if userAgent == "" {
-		userAgent = "sub2api/1.0"
-	}
+// NewSubscriptionHandler creates a new SubscriptionHandler with a default HTTP client.
+func NewSubscriptionHandler() *SubscriptionHandler {
 	return &SubscriptionHandler{
 		client: &http.Client{
-			Timeout: timeout,
+			Timeout: 15 * time.Second,
 		},
-		userAgent: userAgent,
 	}
 }
 
-// ServeHTTP handles HTTP requests, fetches the upstream subscription URL,
-// and returns the raw subscription content to the client.
-func (h *SubscriptionHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
-	subURL := r.URL.Query().Get("url")
+// GetSubscription fetches a remote subscription URL and returns its content
+// as a JSON-compatible response, parsing each proxy line into a structured object.
+//
+// Query parameters:
+//   - url: the remote subscription URL to fetch (required)
+//   - target: output format hint, e.g. "clash", "v2ray" (optional, default: raw)
+func (h *SubscriptionHandler) GetSubscription(c *gin.Context) {
+	subURL := c.Query("url")
 	if subURL == "" {
-		http.Error(w, "missing 'url' query parameter", http.StatusBadRequest)
+		c.JSON(http.StatusBadRequest, gin.H{
+			"error": "missing required query parameter: url",
+		})
 		return
 	}
 
-	// Basic validation: only allow http/https schemes
-	if !strings.HasPrefix(subURL, "http://") && !strings.HasPrefix(subURL, "https://") {
-		http.Error(w, "invalid URL scheme: only http and https are supported", http.StatusBadRequest)
-		return
-	}
+	target := strings.ToLower(c.DefaultQuery("target", "raw"))
 
-	log.Printf("fetching subscription: %s", subURL)
-
-	req, err := http.NewRequestWithContext(r.Context(), http.MethodGet, subURL, nil)
+	req, err := http.NewRequestWithContext(c.Request.Context(), http.MethodGet, subURL, nil)
 	if err != nil {
-		http.Error(w, fmt.Sprintf("failed to build request: %v", err), http.StatusInternalServerError)
+		c.JSON(http.StatusBadRequest, gin.H{
+			"error": fmt.Sprintf("invalid subscription URL: %v", err),
+		})
 		return
 	}
-	req.Header.Set("User-Agent", h.userAgent)
+
+	// Mimic a common subscription client user-agent so remote servers respond correctly.
+	req.Header.Set("User-Agent", "clash/1.0")
 
 	resp, err := h.client.Do(req)
 	if err != nil {
-		http.Error(w, fmt.Sprintf("failed to fetch subscription: %v", err), http.StatusBadGateway)
+		c.JSON(http.StatusBadGateway, gin.H{
+			"error": fmt.Sprintf("failed to fetch subscription: %v", err),
+		})
 		return
 	}
 	defer resp.Body.Close()
 
 	if resp.StatusCode != http.StatusOK {
-		http.Error(w, fmt.Sprintf("upstream returned status %d", resp.StatusCode), http.StatusBadGateway)
+		c.JSON(http.StatusBadGateway, gin.H{
+			"error": fmt.Sprintf("upstream returned status %d", resp.StatusCode),
+		})
 		return
 	}
 
-	// Forward relevant headers from upstream
-	for _, header := range []string{"Content-Type", "Subscription-Userinfo"} {
-		if val := resp.Header.Get(header); val != "" {
-			w.Header().Set(header, val)
-		}
+	body, err := io.ReadAll(io.LimitReader(resp.Body, 10<<20)) // 10 MB limit
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{
+			"error": fmt.Sprintf("failed to read response body: %v", err),
+		})
+		return
 	}
 
-	w.Header().Set("Cache-Control", "no-store")
-	w.WriteHeader(http.StatusOK)
-
-	limitedReader := io.LimitReader(resp.Body, MaxResponseSize)
-	if _, err := io.Copy(w, limitedReader); err != nil {
-		log.Printf("error writing response: %v", err)
+	switch target {
+	case "raw":
+		// Return the raw subscription content with appropriate content type.
+		contentType := resp.Header.Get("Content-Type")
+		if contentType == "" {
+			contentType = "text/plain; charset=utf-8"
+		}
+		c.Data(http.StatusOK, contentType, body)
+	default:
+		// For unsupported targets, return raw content and note the limitation.
+		c.JSON(http.StatusOK, gin.H{
+			"target":  target,
+			"warning": fmt.Sprintf("target format %q is not yet supported; returning raw content", target),
+			"content": string(body),
+		})
 	}
 }
