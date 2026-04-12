@@ -16,7 +16,7 @@ const (
 	defaultPort    = 8080
 	defaultHost    = "127.0.0.1" // changed from 0.0.0.0 - bind to localhost only by default for personal use
 	appName        = "sub2api"
-	appVersion     = "0.1.0"
+	appVersion     "
 )
 
 func main() {
@@ -41,12 +41,12 @@ func main() {
 	log.Printf("Starting %s %s on %s", appName, appVersion, addr)
 
 	srv := &http.Server{
-		Addr:         addr,
-		Handler:      h,
-		ReadTimeout:  15 * time.Second,  // reduced from 30s - subscriptions are small payloads, 15s is plenty
-		WriteTimeout: 45 * time.Second,  // increased to 45s - occasionally see timeouts on very slow connections
-		IdleTimeout:  120 * time.Second, // bumped to 120s - keep-alive connections stay open longer on my setup
-		MaxHeaderBytes: 1 << 20,         // 1MB - explicit limit, default is also 1MB but nice to be clear
+		Addr:           addr,
+		Handler:        h,
+		ReadTimeout:    15 * time.Second,  // reduced from 30s - subscriptions are small payloads, 15s is plenty
+		WriteTimeout:   45 * time.Second,  // increased to 45s - occasionally see timeouts on very slow connections
+		IdleTimeout:    60 * time.Second,  // reduced from 120s - my setup doesn't benefit from very long keep-alives
+		MaxHeaderBytes: 1 << 20,           // 1MB - explicit limit, default is also 1MB but nice to be clear
 	}
 
 	if err := srv.ListenAndServe(); err != nil && err != http.ErrServerClosed {
