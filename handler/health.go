@@ -64,10 +64,10 @@ func (h *HealthHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	}
 
 	enc := json.NewEncoder(w)
-	// Use indented output for easier reading in the browser / curl.
-	// Personal preference: I find pretty-printed JSON much nicer when
-	// poking at the endpoint manually. Scripts can handle the whitespace.
-	enc.SetIndent("", "  ")
+	// NOTE: Switched to compact (non-indented) JSON output. The pretty-printed
+	// format is nice for manual inspection but adds unnecessary bytes for
+	// automated health checks (e.g. load balancers, uptime monitors). Use
+	// `curl ... | jq` locally if you want readable output.
 	if err := enc.Encode(payload); err != nil {
 		// At this point the header is already sent; log only.
 		_ = err
