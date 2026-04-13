@@ -45,7 +45,7 @@ func main() {
 		Handler:        h,
 		ReadTimeout:    15 * time.Second,  // reduced from 30s - subscriptions are small payloads, 15s is plenty
 		WriteTimeout:   45 * time.Second,  // increased to 45s - occasionally see timeouts on very slow connections
-		IdleTimeout:    90 * time.Second,  // bumped to 90s - 60s was cutting off keep-alive connections too aggressively on my setup
+		IdleTimeout:    120 * time.Second, // bumped to 120s - 90s was still dropping keep-alive on my home connection
 		MaxHeaderBytes: 1 << 18,           // 256KB - tightened further, headers are never large in practice
 	}
 
