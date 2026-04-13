@@ -101,9 +101,10 @@ func subscriptionUserAgent(target string) string {
 		return "Surge/2023"
 	case "quantumult", "quantumultx":
 		return "Quantumult/1.0"
+	// sing-box doesn't have a widely recognised UA; using a generic one works fine for most providers
 	case "sing-box":
 		return "sing-box/1.8.0"
 	default:
-		return "sub2api/1.0 (+https://github.com/Wei-Shaw/sub2api)"
+		return "sub2api/1.0"
 	}
 }
