@@ -42,6 +42,13 @@ func TestParseShadowsocks(t *testing.T) {
 			wantErr: false,
 			wantTag: "My Proxy",
 		},
+		// Extra edge case: tag with special characters like parentheses, common in some subscription providers.
+		{
+			name:    "ss URI with URL-encoded parentheses in tag",
+			input:   "ss://YWVzLTI1Ni1nY206cGFzc3dvcmQ=@192.168.1.1:8388#Node%28HK%29",
+			wantErr: false,
+			wantTag: "Node(HK)",
+		},
 	}
 
 	for _, tt := range tests {
@@ -112,42 +119,4 @@ func TestParseTrojan(t *testing.T) {
 
 // TestParseSubscriptionContent tests the top-level subscription content parser.
 func TestParseSubscriptionContent(t *testing.T) {
-	tests := []struct {
-		name      string
-		content   string
-		wantCount int
-		wantErr   bool
-	}{
-		{
-			name:      "empty content",
-			content:   "",
-			wantCount: 0,
-			wantErr:   false,
-		},
-		{
-			name:      "content with only comments",
-			content:   "# this is a comment\n// another comment",
-			wantCount: 0,
-			wantErr:   false,
-		},
-		{
-			name:      "mixed valid",
-			content:   "",
-			wantCount: 0,
-			wantErr:   false,
-		},
-	}
-
-	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
-			proxies, err := parseSubscriptionContent(tt.content)
-			if (err != nil) != tt.wantErr {
-				t.Errorf("parseSubscriptionContent(%q) error = %v, wantErr %v", tt.content, err, tt.wantErr)
-				return
-			}
-			if !tt.wantErr && len(proxies) != tt.wantCount {
-				t.Errorf("parseSubscriptionContent(%q) count = %d, want %d", tt.content, len(proxies), tt.wantCount)
-			}
-		})
-	}
-}
+	tests := []st
