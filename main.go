@@ -16,7 +16,7 @@ const (
 	defaultPort    = 8080
 	defaultHost    = "127.0.0.1" // changed from 0.0.0.0 - bind to localhost only by default for personal use
 	appName        = "sub2api"
-	appVersion     = "0.1.0"
+	appVersion     "
 )
 
 func main() {
@@ -70,6 +70,7 @@ func getEnvInt(key string, defaultVal int) int {
 		if i, err := strconv.Atoi(val); err == nil {
 			return i
 		}
+		// Print to stderr so it's visible even when stdout is piped
 		log.Printf("Warning: env var %s=%q is not a valid integer, using default %d", key, val, defaultVal)
 	}
 	return defaultVal
