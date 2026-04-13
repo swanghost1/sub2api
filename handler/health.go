@@ -64,7 +64,8 @@ func (h *HealthHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	}
 
 	enc := json.NewEncoder(w)
-	enc.SetIndent("", "  ")
+	// Use no indentation for a more compact response; easier to parse in scripts.
+	// enc.SetIndent("", "  ")
 	if err := enc.Encode(payload); err != nil {
 		// At this point the header is already sent; log only.
 		_ = err
