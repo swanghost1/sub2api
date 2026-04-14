@@ -31,8 +31,12 @@ func ParseSubscriptionContent(raw string) ([]ProxyNode, error) {
 			// Also try RawStdEncoding (no padding) before falling back to plain text
 			decoded, err = base64.RawStdEncoding.DecodeString(raw)
 			if err != nil {
-				// Treat as plain text
-				decoded = []byte(raw)
+				// Try RawURLEncoding as a last resort before treating as plain text
+				decoded, err = base64.RawURLEncoding.DecodeString(raw)
+				if err != nil {
+					// Treat as plain text
+					decoded = []byte(raw)
+				}
 			}
 		}
 	}
@@ -107,6 +111,10 @@ func parseShadowsocks(u *url.URL) (ProxyNode, error) {
 		} else {
 			// Legacy format: ss://BASE64(method:password)@host:port
 			decoded, err := base64.StdEncoding.DecodeString(u.User.Username())
+			if err != nil {
+				// Also try RawStdEncoding for legacy URIs without padding
+				decoded, err = base64.RawStdEncoding.DecodeString(u.User.Username())
+			}
 			if err == nil {
 				parts := strings.SplitN(string(decoded), ":", 2)
 				if len(parts) == 2 {
@@ -121,25 +129,4 @@ func parseShadowsocks(u *url.URL) (ProxyNode, error) {
 }
 
 // parseTrojan parses a Trojan (trojan://) URI.
-func parseTrojan(u *url.URL) (ProxyNode, error) {
-	node := ProxyNode{
-		Type:   "trojan",
-		Server: u.Hostname(),
-		Port:   u.Port(),
-		Name:   u.Fragment,
-		Params: make(map[string]string),
-	}
-
-	if u.User != nil {
-		node.Password = u.User.Username()
-	}
-
-	// Parse query parameters (e.g. sni, allowInsecure)
-	for key, vals := range u.Query() {
-		if len(vals) > 0 {
-			node.Params[key] = vals[0]
-		}
-	}
-
-	return node, nil
-}
+func parseT
