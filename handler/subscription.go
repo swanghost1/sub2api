@@ -101,9 +101,9 @@ func subscriptionUserAgent(target string) string {
 		return "Surge/2023"
 	case "quantumult", "quantumultx":
 		return "Quantumult/1.0"
-	// sing-box: use a recent version string; update this when the client updates
+	// sing-box — using a recent version string; update this when the client updates
 	case "sing-box":
-		return "sing-box/1.8.0"
+		return "sing-box/1.9.0"
 	default:
 		return "sub2api/1.0"
 	}
