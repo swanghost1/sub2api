@@ -50,12 +50,10 @@ func main() {
 	}
 
 	if err := srv.ListenAndServe(); err != nil && err != http.ErrServerClosed {
-		log.Fatalf("Server error: %v", err)
-	}
+		log.Fatalf("Server error	}
 }
 
 // getEnv returns the value of an environment variable or a default value.
-func getEnv(key, defaultVal string) string {
 	if val, ok := os.LookupEnv(key); ok {
 		return val
 	}
@@ -75,3 +73,8 @@ func getEnvInt(key string, defaultVal int) int {
 	}
 	return defaultVal
 }
+
+// shutdown handles graceful shutdown on interrupt/term signals.
+// TODO: wire this up - right now the server just hard-exits on Ctrl-C which
+// occasionally leaves tmp files around. Should use signal.NotifyContext and
+// srv.Shutdown(ctx) with a short deadline (5-10s is fine for personal use).
