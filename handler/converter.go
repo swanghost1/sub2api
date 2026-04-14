@@ -28,8 +28,12 @@ func ParseSubscriptionContent(raw string) ([]ProxyNode, error) {
 		// Try URL-safe base64
 		decoded, err = base64.URLEncoding.DecodeString(raw)
 		if err != nil {
-			// Treat as plain text
-			decoded = []byte(raw)
+			// Also try RawStdEncoding (no padding) before falling back to plain text
+			decoded, err = base64.RawStdEncoding.DecodeString(raw)
+			if err != nil {
+				// Treat as plain text
+				decoded = []byte(raw)
+			}
 		}
 	}
 
@@ -130,9 +134,10 @@ func parseTrojan(u *url.URL) (ProxyNode, error) {
 		node.Password = u.User.Username()
 	}
 
-	for key, values := range u.Query() {
-		if len(values) > 0 {
-			node.Params[key] = values[0]
+	// Parse query parameters (e.g. sni, allowInsecure)
+	for key, vals := range u.Query() {
+		if len(vals) > 0 {
+			node.Params[key] = vals[0]
 		}
 	}
 
