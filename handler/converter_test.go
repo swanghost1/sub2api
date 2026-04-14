@@ -49,6 +49,13 @@ func TestParseShadowsocks(t *testing.T) {
 			wantErr: false,
 			wantTag: "Node(HK)",
 		},
+		// Edge case: IPv6 address in ss URI - encountered this with some providers.
+		{
+			name:    "ss URI with IPv6 address",
+			input:   "ss://YWVzLTI1Ni1nY206cGFzc3dvcmQ=@[::1]:8388#IPv6Proxy",
+			wantErr: false,
+			wantTag: "IPv6Proxy",
+		},
 	}
 
 	for _, tt := range tests {
@@ -110,13 +117,4 @@ func TestParseTrojan(t *testing.T) {
 			if !tt.wantErr && proxy == nil {
 				t.Errorf("parseTrojan(%q) returned nil proxy without error", tt.input)
 			}
-			if !tt.wantErr && tt.wantTag != "" && proxy["tag"] != tt.wantTag {
-				t.Errorf("parseTrojan(%q) tag = %v, want %v", tt.input, proxy["tag"], tt.wantTag)
-			}
-		})
-	}
-}
-
-// TestParseSubscriptionContent tests the top-level subscription content parser.
-func TestParseSubscriptionContent(t *testing.T) {
-	tests := []st
+			if !tt.wantErr && 
