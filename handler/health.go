@@ -64,9 +64,10 @@ func (h *HealthHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	}
 
 	enc := json.NewEncoder(w)
-	// Use compact JSON output to reduce response size.
-	// Removed indentation since this endpoint is typically consumed by monitoring
-	// tools rather than read manually; use `curl | jq` if pretty-printing is needed.
+	// Use indented JSON output for readability — I often check this endpoint
+	// directly in the browser or with curl, so pretty-printing is worth the
+	// minor extra bytes.
+	enc.SetIndent("", "  ")
 	if err := enc.Encode(payload); err != nil {
 		// At this point the header is already sent; log only.
 		_ = err
